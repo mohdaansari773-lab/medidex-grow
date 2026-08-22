@@ -57,9 +57,12 @@ function MedicinesPage() {
         </Badge>
         <h1 className="font-display text-2xl font-bold">Medicines</h1>
         <p className="text-sm text-muted-foreground">
-          {data?.length ?? 0} verified starter records. This is not a list of all medicines available
-          in India.
+          {data?.length ?? 0} records ·{" "}
+          {(data ?? []).filter((m) => m.verification_status === "verified").length} verified ·{" "}
+          {(data ?? []).filter((m) => m.verification_status !== "verified").length} under review.
+          This is not a list of all medicines available in India.
         </p>
+
       </header>
 
       <Input
