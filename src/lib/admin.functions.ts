@@ -188,33 +188,157 @@ export const setMedicineStatus = createServerFn({ method: "POST" })
 
 /* ---------------- brands & manufacturers ---------------- */
 
+const VERIFICATION_STATES = [
+  "draft",
+  "under_review",
+  "verified",
+  "needs_update",
+  "archived",
+] as const;
+
+/** Same normalisation the database trigger applies — used for duplicate checks. */
+export function normalizeName(v: string) {
+  return v.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
 const brandSchema = z.object({
   id: uuid.optional(),
   medicine_id: uuid,
   brand_name: z.string().trim().min(1).max(200),
   manufacturer_id: uuid.nullish().transform((v) => v ?? null),
+  active_ingredient: shortText,
   composition: shortText,
   strength: shortText,
   dosage_form: shortText,
   route: shortText,
   source: shortText,
-  verified: z.boolean(),
+  reference_id: uuid.nullish().transform((v) => v ?? null),
+  verification_status: z.enum(VERIFICATION_STATES).default("under_review"),
   last_verified: isoDate,
+  data_version: z.string().trim().min(1).max(20).default("1.0"),
 });
+
+/**
+ * A brand may only be stored as `verified` when the manufacturer, composition,
+ * dosage form and a source/reference are all present — otherwise it is pushed
+ * back to `under_review` ("Not yet verified") rather than guessed.
+ */
+function gateBrandVerification(values: {
+  verification_status: string;
+  manufacturer_id: string | null;
+  composition: string | null;
+  dosage_form: string | null;
+  source: string | null;
+  reference_id: string | null;
+}) {
+  if (values.verification_status !== "verified") return values.verification_status;
+  const complete =
+    !!values.manufacturer_id &&
+    !!values.composition &&
+    !!values.dosage_form &&
+    (!!values.source || !!values.reference_id);
+  return complete ? "verified" : "under_review";
+}
 
 export const saveBrand = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => brandSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx);
-    const { id, ...values } = data;
+    const { id, ...rest } = data;
+    const verification_status = gateBrandVerification(rest);
+    const values = {
+      ...rest,
+      verification_status,
+      normalized_brand_name: normalizeName(rest.brand_name),
+      last_verified:
+        verification_status === "verified"
+          ? (rest.last_verified ?? new Date().toISOString().slice(0, 10))
+          : rest.last_verified,
+    };
     const q = id
       ? context.supabase.from("brands").update(values).eq("id", id)
       : context.supabase.from("brands").insert(values);
     const { error } = await q;
-    if (error) throw new Error("Could not save this brand.");
+    if (error)
+      throw new Error(
+        "Could not save this brand. It may already exist for this company, medicine and strength.",
+      );
     await audit(context as Ctx, id ? "brand.update" : "brand.create", "brands", id ?? null, {
       brand_name: values.brand_name,
+      verification_status,
+    });
+    return { ok: true, verification_status };
+  });
+
+export const setBrandStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: uuid, verification_status: z.enum(VERIFICATION_STATES) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as Ctx);
+    if (data.verification_status === "verified") {
+      const { data: row } = await context.supabase
+        .from("brands")
+        .select("manufacturer_id, composition, dosage_form, source, reference_id")
+        .eq("id", data.id)
+        .maybeSingle();
+      const ok =
+        row &&
+        row.manufacturer_id &&
+        row.composition &&
+        row.dosage_form &&
+        (row.source || row.reference_id);
+      if (!ok)
+        throw new Error(
+          "This brand cannot be marked verified: manufacturer, composition, dosage form and a source are all required.",
+        );
+    }
+    const { error } = await context.supabase
+      .from("brands")
+      .update({
+        verification_status: data.verification_status,
+        last_verified:
+          data.verification_status === "verified" ? new Date().toISOString().slice(0, 10) : null,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error("Could not update this brand.");
+    await audit(context as Ctx, `brand.${data.verification_status}`, "brands", data.id, {
+      verification_status: data.verification_status,
+    });
+    return { ok: true };
+  });
+
+export const setManufacturerStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: uuid, verification_status: z.enum(VERIFICATION_STATES) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context as Ctx);
+    if (data.verification_status === "verified") {
+      const { count } = await context.supabase
+        .from("brands")
+        .select("id", { count: "exact", head: true })
+        .eq("manufacturer_id", data.id)
+        .eq("verification_status", "verified");
+      if (!count)
+        throw new Error(
+          "This company cannot be marked verified until at least one of its brands is verified.",
+        );
+    }
+    const { error } = await context.supabase
+      .from("manufacturers")
+      .update({
+        verification_status: data.verification_status,
+        last_verified:
+          data.verification_status === "verified" ? new Date().toISOString().slice(0, 10) : null,
+      })
+      .eq("id", data.id);
+    if (error) throw new Error("Could not update this company.");
+    await audit(context as Ctx, `manufacturer.${data.verification_status}`, "manufacturers", data.id, {
+      verification_status: data.verification_status,
     });
     return { ok: true };
   });
@@ -240,18 +364,38 @@ export const saveManufacturer = createServerFn({ method: "POST" })
         country: shortText,
         website: optionalUrl,
         status: z.enum(["active", "inactive"]).default("active"),
+        verification_status: z.enum(VERIFICATION_STATES).default("under_review"),
+        source: text,
+        last_verified: isoDate,
       })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx);
     const { id, ...values } = data;
-    const payload = { ...values };
+    // A company is only "verified" once it has at least one verified brand.
+    let verification_status = values.verification_status;
+    if (verification_status === "verified") {
+      const { count } = id
+        ? await context.supabase
+            .from("brands")
+            .select("id", { count: "exact", head: true })
+            .eq("manufacturer_id", id)
+            .eq("verification_status", "verified")
+        : { count: 0 };
+      if (!count) verification_status = "under_review";
+    }
+    const payload = {
+      ...values,
+      verification_status,
+      normalized_name: normalizeName(values.name),
+    };
     const q = id
       ? context.supabase.from("manufacturers").update(payload).eq("id", id)
       : context.supabase.from("manufacturers").insert(payload);
     const { error } = await q;
-    if (error) throw new Error("Could not save this manufacturer.");
+    if (error)
+      throw new Error("Could not save this manufacturer. A company with this name may already exist.");
     await audit(
       context as Ctx,
       id ? "manufacturer.update" : "manufacturer.create",

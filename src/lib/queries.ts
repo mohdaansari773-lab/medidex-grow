@@ -399,3 +399,94 @@ export const safetyAlertsQuery = (medicineId?: string) =>
       return data ?? [];
     },
   });
+
+/* -------------------------------------------------------------------------
+ * Manufacturers & brands (Indian pharmaceutical company directory).
+ * ---------------------------------------------------------------------- */
+
+export type Manufacturer = Tables<"manufacturers">;
+
+export type ManufacturerListItem = Manufacturer & { verified_brand_count: number };
+
+export const manufacturersQuery = () =>
+  queryOptions({
+    queryKey: ["manufacturers"],
+    queryFn: async (): Promise<ManufacturerListItem[]> => {
+      const [{ data: makers, error }, { data: brands, error: brandError }] = await Promise.all([
+        supabase.from("manufacturers").select("*").order("name"),
+        supabase.from("brands").select("manufacturer_id, verification_status"),
+      ]);
+      if (error) throw error;
+      if (brandError) throw brandError;
+      const counts = new Map<string, number>();
+      for (const b of brands ?? []) {
+        if (!b.manufacturer_id || b.verification_status !== "verified") continue;
+        counts.set(b.manufacturer_id, (counts.get(b.manufacturer_id) ?? 0) + 1);
+      }
+      return (makers ?? []).map((m) => ({
+        ...m,
+        verified_brand_count: counts.get(m.id) ?? 0,
+      }));
+    },
+  });
+
+export const manufacturerQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["manufacturer", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("manufacturers")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+export const manufacturerBrandsQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["manufacturer-brands", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("brands")
+        .select("*, medicines(slug, display_name, generic_name, category)")
+        .eq("manufacturer_id", id)
+        .order("brand_name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+export const brandQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["brand", id],
+    enabled: UUID_RE.test(id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("brands")
+        .select(
+          "*, manufacturers(id, name, verification_status), medicines(id, slug, display_name, generic_name, salt, active_ingredient, category), references(source_name, source_url)",
+        )
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+/** Verified brand counts per medicine id — used for the "Brands available" hint. */
+export const brandCountsQuery = () =>
+  queryOptions({
+    queryKey: ["brand-counts"],
+    queryFn: async (): Promise<Record<string, number>> => {
+      const { data, error } = await supabase
+        .from("brands")
+        .select("medicine_id")
+        .eq("verification_status", "verified");
+      if (error) throw error;
+      const out: Record<string, number> = {};
+      for (const b of data ?? []) if (b.medicine_id) out[b.medicine_id] = (out[b.medicine_id] ?? 0) + 1;
+      return out;
+    },
+  });
