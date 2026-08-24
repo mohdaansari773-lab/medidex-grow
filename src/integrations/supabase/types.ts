@@ -76,45 +76,63 @@ export type Database = {
       }
       brands: {
         Row: {
+          active_ingredient: string | null
           brand_name: string
           composition: string | null
           created_at: string
+          data_version: string
           dosage_form: string | null
           id: string
           last_verified: string | null
           manufacturer_id: string | null
           medicine_id: string | null
+          normalized_brand_name: string
+          reference_id: string | null
           route: string | null
           source: string | null
           strength: string | null
+          updated_at: string
+          verification_status: string
           verified: boolean
         }
         Insert: {
+          active_ingredient?: string | null
           brand_name: string
           composition?: string | null
           created_at?: string
+          data_version?: string
           dosage_form?: string | null
           id?: string
           last_verified?: string | null
           manufacturer_id?: string | null
           medicine_id?: string | null
+          normalized_brand_name: string
+          reference_id?: string | null
           route?: string | null
           source?: string | null
           strength?: string | null
+          updated_at?: string
+          verification_status?: string
           verified?: boolean
         }
         Update: {
+          active_ingredient?: string | null
           brand_name?: string
           composition?: string | null
           created_at?: string
+          data_version?: string
           dosage_form?: string | null
           id?: string
           last_verified?: string | null
           manufacturer_id?: string | null
           medicine_id?: string | null
+          normalized_brand_name?: string
+          reference_id?: string | null
           route?: string | null
           source?: string | null
           strength?: string | null
+          updated_at?: string
+          verification_status?: string
           verified?: boolean
         }
         Relationships: [
@@ -130,6 +148,13 @@ export type Database = {
             columns: ["medicine_id"]
             isOneToOne: false
             referencedRelation: "medicines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brands_reference_id_fkey"
+            columns: ["reference_id"]
+            isOneToOne: false
+            referencedRelation: "references"
             referencedColumns: ["id"]
           },
         ]
@@ -418,24 +443,39 @@ export type Database = {
           country: string | null
           created_at: string
           id: string
+          last_verified: string | null
           name: string
+          normalized_name: string
+          source: string | null
           status: string
+          updated_at: string
+          verification_status: string
           website: string | null
         }
         Insert: {
           country?: string | null
           created_at?: string
           id?: string
+          last_verified?: string | null
           name: string
+          normalized_name: string
+          source?: string | null
           status?: string
+          updated_at?: string
+          verification_status?: string
           website?: string | null
         }
         Update: {
           country?: string | null
           created_at?: string
           id?: string
+          last_verified?: string | null
           name?: string
+          normalized_name?: string
+          source?: string | null
           status?: string
+          updated_at?: string
+          verification_status?: string
           website?: string | null
         }
         Relationships: []
@@ -1125,6 +1165,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      normalize_name: { Args: { _v: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "editor" | "user"
