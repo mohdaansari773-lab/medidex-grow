@@ -364,18 +364,38 @@ export const saveManufacturer = createServerFn({ method: "POST" })
         country: shortText,
         website: optionalUrl,
         status: z.enum(["active", "inactive"]).default("active"),
+        verification_status: z.enum(VERIFICATION_STATES).default("under_review"),
+        source: text,
+        last_verified: isoDate,
       })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context as Ctx);
     const { id, ...values } = data;
-    const payload = { ...values };
+    // A company is only "verified" once it has at least one verified brand.
+    let verification_status = values.verification_status;
+    if (verification_status === "verified") {
+      const { count } = id
+        ? await context.supabase
+            .from("brands")
+            .select("id", { count: "exact", head: true })
+            .eq("manufacturer_id", id)
+            .eq("verification_status", "verified")
+        : { count: 0 };
+      if (!count) verification_status = "under_review";
+    }
+    const payload = {
+      ...values,
+      verification_status,
+      normalized_name: normalizeName(values.name),
+    };
     const q = id
       ? context.supabase.from("manufacturers").update(payload).eq("id", id)
       : context.supabase.from("manufacturers").insert(payload);
     const { error } = await q;
-    if (error) throw new Error("Could not save this manufacturer.");
+    if (error)
+      throw new Error("Could not save this manufacturer. A company with this name may already exist.");
     await audit(
       context as Ctx,
       id ? "manufacturer.update" : "manufacturer.create",
