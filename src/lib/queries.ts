@@ -278,7 +278,11 @@ export const searchQuery = (term: string) =>
           .select("slug, term, simple_definition")
           .ilike("term", like)
           .limit(8),
-        supabase.from("manufacturers").select("id, name, country").ilike("name", like).limit(5),
+        supabase
+          .from("manufacturers")
+          .select("id, name, country, verification_status")
+          .ilike("name", like)
+          .limit(5),
       ]);
 
       const results: SearchResult[] = [];
@@ -329,8 +333,10 @@ export const searchQuery = (term: string) =>
         results.push({
           kind: "manufacturer",
           title: mk.name,
-          subtitle: `Manufacturer${mk.country ? ` • ${mk.country}` : ""}`,
-          href: `/medicines`,
+          subtitle: `Pharmaceutical company${mk.country ? ` • ${mk.country}` : ""}${
+            mk.verification_status === "verified" ? " • verified" : " • Not yet verified"
+          }`,
+          href: `/manufacturers/${mk.id}`,
           rank: rankFor(mk.name, needle, 5) + 1,
         });
 
