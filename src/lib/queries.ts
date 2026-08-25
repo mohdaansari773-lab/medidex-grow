@@ -266,9 +266,11 @@ export const searchQuery = (term: string) =>
         supabase
           .from("brands")
           .select(
-            "brand_name, composition, strength, verified, medicines(slug, display_name), manufacturers(name)",
+            "id, brand_name, composition, active_ingredient, strength, verification_status, medicines(slug, display_name), manufacturers(name)",
           )
-          .ilike("brand_name", like)
+          .or(
+            `brand_name.ilike.${like},composition.ilike.${like},active_ingredient.ilike.${like}`,
+          )
           .limit(10),
         supabase.from("drug_classes").select("slug, name, class_type").ilike("name", like).limit(8),
         supabase
