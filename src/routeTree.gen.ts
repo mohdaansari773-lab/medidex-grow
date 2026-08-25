@@ -31,6 +31,7 @@ import { Route as StudyRouteImport } from './routes/study'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ClassesIndexRouteImport } from './routes/classes.index'
 import { Route as ClassesSlugRouteImport } from './routes/classes.$slug'
+import { Route as ManufacturersIndexRouteImport } from './routes/manufacturers.index'
 import { Route as MedicinesIndexRouteImport } from './routes/medicines.index'
 import { Route as MedicinesSlugRouteImport } from './routes/medicines.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -146,6 +147,11 @@ const ClassesSlugRoute = ClassesSlugRouteImport.update({
   path: '/classes/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManufacturersIndexRoute = ManufacturersIndexRouteImport.update({
+  id: '/manufacturers/',
+  path: '/manufacturers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MedicinesIndexRoute = MedicinesIndexRouteImport.update({
   id: '/medicines/',
   path: '/medicines/',
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/classes/$slug': typeof ClassesSlugRoute
   '/medicines/$slug': typeof MedicinesSlugRoute
   '/classes/': typeof ClassesIndexRoute
+  '/manufacturers/': typeof ManufacturersIndexRoute
   '/medicines/': typeof MedicinesIndexRoute
   '/admin/$id': typeof AuthenticatedAdminIdRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/classes/$slug': typeof ClassesSlugRoute
   '/medicines/$slug': typeof MedicinesSlugRoute
   '/classes': typeof ClassesIndexRoute
+  '/manufacturers': typeof ManufacturersIndexRoute
   '/medicines': typeof MedicinesIndexRoute
   '/admin/$id': typeof AuthenticatedAdminIdRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
@@ -254,6 +262,7 @@ export interface FileRoutesById {
   '/classes/$slug': typeof ClassesSlugRoute
   '/medicines/$slug': typeof MedicinesSlugRoute
   '/classes/': typeof ClassesIndexRoute
+  '/manufacturers/': typeof ManufacturersIndexRoute
   '/medicines/': typeof MedicinesIndexRoute
   '/_authenticated/admin/$id': typeof AuthenticatedAdminIdRoute
   '/_authenticated/admin/import': typeof AuthenticatedAdminImportRoute
@@ -284,6 +293,7 @@ export interface FileRouteTypes {
     | '/classes/$slug'
     | '/medicines/$slug'
     | '/classes/'
+    | '/manufacturers/'
     | '/medicines/'
     | '/admin/$id'
     | '/admin/import'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/classes/$slug'
     | '/medicines/$slug'
     | '/classes'
+    | '/manufacturers'
     | '/medicines'
     | '/admin/$id'
     | '/admin/import'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/classes/$slug'
     | '/medicines/$slug'
     | '/classes/'
+    | '/manufacturers/'
     | '/medicines/'
     | '/_authenticated/admin/$id'
     | '/_authenticated/admin/import'
@@ -371,6 +383,7 @@ export interface RootRouteChildren {
   ClassesSlugRoute: typeof ClassesSlugRoute
   MedicinesSlugRoute: typeof MedicinesSlugRoute
   ClassesIndexRoute: typeof ClassesIndexRoute
+  ManufacturersIndexRoute: typeof ManufacturersIndexRoute
   MedicinesIndexRoute: typeof MedicinesIndexRoute
 }
 
@@ -530,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClassesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manufacturers/': {
+      id: '/manufacturers/'
+      path: '/manufacturers'
+      fullPath: '/manufacturers/'
+      preLoaderRoute: typeof ManufacturersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/medicines/': {
       id: '/medicines/'
       path: '/medicines'
@@ -607,6 +627,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClassesSlugRoute: ClassesSlugRoute,
   MedicinesSlugRoute: MedicinesSlugRoute,
   ClassesIndexRoute: ClassesIndexRoute,
+  ManufacturersIndexRoute: ManufacturersIndexRoute,
   MedicinesIndexRoute: MedicinesIndexRoute,
 }
 export const routeTree = rootRouteImport
