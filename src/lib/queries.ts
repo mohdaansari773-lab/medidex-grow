@@ -266,9 +266,11 @@ export const searchQuery = (term: string) =>
         supabase
           .from("brands")
           .select(
-            "brand_name, composition, strength, verified, medicines(slug, display_name), manufacturers(name)",
+            "id, brand_name, composition, active_ingredient, strength, verification_status, medicines(slug, display_name), manufacturers(name)",
           )
-          .ilike("brand_name", like)
+          .or(
+            `brand_name.ilike.${like},composition.ilike.${like},active_ingredient.ilike.${like}`,
+          )
           .limit(10),
         supabase.from("drug_classes").select("slug, name, class_type").ilike("name", like).limit(8),
         supabase
@@ -276,7 +278,11 @@ export const searchQuery = (term: string) =>
           .select("slug, term, simple_definition")
           .ilike("term", like)
           .limit(8),
-        supabase.from("manufacturers").select("id, name, country").ilike("name", like).limit(5),
+        supabase
+          .from("manufacturers")
+          .select("id, name, country, verification_status")
+          .ilike("name", like)
+          .limit(5),
       ]);
 
       const results: SearchResult[] = [];
@@ -306,9 +312,11 @@ export const searchQuery = (term: string) =>
           kind: "brand",
           title: b.brand_name,
           subtitle: `Brand${b.manufacturers?.name ? ` • ${b.manufacturers.name}` : ""} • ${
-            b.verified ? (b.composition ?? "composition on record") : "composition not yet verified"
+            b.verification_status === "verified"
+              ? (b.composition ?? b.active_ingredient ?? "composition on record")
+              : "Not yet verified"
           }${b.strength ? ` ${b.strength}` : ""}`,
-          href: b.medicines ? `/medicines/${b.medicines.slug}` : "/medicines",
+          href: `/brands/${b.id}`,
           rank: rankFor(b.brand_name, needle, 2),
         });
 
@@ -325,8 +333,10 @@ export const searchQuery = (term: string) =>
         results.push({
           kind: "manufacturer",
           title: mk.name,
-          subtitle: `Manufacturer${mk.country ? ` • ${mk.country}` : ""}`,
-          href: `/medicines`,
+          subtitle: `Pharmaceutical company${mk.country ? ` • ${mk.country}` : ""}${
+            mk.verification_status === "verified" ? " • verified" : " • Not yet verified"
+          }`,
+          href: `/manufacturers/${mk.id}`,
           rank: rankFor(mk.name, needle, 5) + 1,
         });
 
