@@ -308,9 +308,11 @@ export const searchQuery = (term: string) =>
           kind: "brand",
           title: b.brand_name,
           subtitle: `Brand${b.manufacturers?.name ? ` • ${b.manufacturers.name}` : ""} • ${
-            b.verified ? (b.composition ?? "composition on record") : "composition not yet verified"
+            b.verification_status === "verified"
+              ? (b.composition ?? b.active_ingredient ?? "composition on record")
+              : "Not yet verified"
           }${b.strength ? ` ${b.strength}` : ""}`,
-          href: b.medicines ? `/medicines/${b.medicines.slug}` : "/medicines",
+          href: `/brands/${b.id}`,
           rank: rankFor(b.brand_name, needle, 2),
         });
 
