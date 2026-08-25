@@ -32,6 +32,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ClassesIndexRouteImport } from './routes/classes.index'
 import { Route as ClassesSlugRouteImport } from './routes/classes.$slug'
 import { Route as ManufacturersIndexRouteImport } from './routes/manufacturers.index'
+import { Route as ManufacturersIdRouteImport } from './routes/manufacturers.$id'
 import { Route as MedicinesIndexRouteImport } from './routes/medicines.index'
 import { Route as MedicinesSlugRouteImport } from './routes/medicines.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -152,6 +153,11 @@ const ManufacturersIndexRoute = ManufacturersIndexRouteImport.update({
   path: '/manufacturers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManufacturersIdRoute = ManufacturersIdRouteImport.update({
+  id: '/manufacturers/$id',
+  path: '/manufacturers/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MedicinesIndexRoute = MedicinesIndexRouteImport.update({
   id: '/medicines/',
   path: '/medicines/',
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/study': typeof StudyRoute
   '/terms': typeof TermsRoute
   '/classes/$slug': typeof ClassesSlugRoute
+  '/manufacturers/$id': typeof ManufacturersIdRoute
   '/medicines/$slug': typeof MedicinesSlugRoute
   '/classes/': typeof ClassesIndexRoute
   '/manufacturers/': typeof ManufacturersIndexRoute
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/study': typeof StudyRoute
   '/terms': typeof TermsRoute
   '/classes/$slug': typeof ClassesSlugRoute
+  '/manufacturers/$id': typeof ManufacturersIdRoute
   '/medicines/$slug': typeof MedicinesSlugRoute
   '/classes': typeof ClassesIndexRoute
   '/manufacturers': typeof ManufacturersIndexRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/study': typeof StudyRoute
   '/terms': typeof TermsRoute
   '/classes/$slug': typeof ClassesSlugRoute
+  '/manufacturers/$id': typeof ManufacturersIdRoute
   '/medicines/$slug': typeof MedicinesSlugRoute
   '/classes/': typeof ClassesIndexRoute
   '/manufacturers/': typeof ManufacturersIndexRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/study'
     | '/terms'
     | '/classes/$slug'
+    | '/manufacturers/$id'
     | '/medicines/$slug'
     | '/classes/'
     | '/manufacturers/'
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/study'
     | '/terms'
     | '/classes/$slug'
+    | '/manufacturers/$id'
     | '/medicines/$slug'
     | '/classes'
     | '/manufacturers'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '/study'
     | '/terms'
     | '/classes/$slug'
+    | '/manufacturers/$id'
     | '/medicines/$slug'
     | '/classes/'
     | '/manufacturers/'
@@ -381,6 +393,7 @@ export interface RootRouteChildren {
   StudyRoute: typeof StudyRoute
   TermsRoute: typeof TermsRoute
   ClassesSlugRoute: typeof ClassesSlugRoute
+  ManufacturersIdRoute: typeof ManufacturersIdRoute
   MedicinesSlugRoute: typeof MedicinesSlugRoute
   ClassesIndexRoute: typeof ClassesIndexRoute
   ManufacturersIndexRoute: typeof ManufacturersIndexRoute
@@ -550,6 +563,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManufacturersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manufacturers/$id': {
+      id: '/manufacturers/$id'
+      path: '/manufacturers/$id'
+      fullPath: '/manufacturers/$id'
+      preLoaderRoute: typeof ManufacturersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/medicines/': {
       id: '/medicines/'
       path: '/medicines'
@@ -625,6 +645,7 @@ const rootRouteChildren: RootRouteChildren = {
   StudyRoute: StudyRoute,
   TermsRoute: TermsRoute,
   ClassesSlugRoute: ClassesSlugRoute,
+  ManufacturersIdRoute: ManufacturersIdRoute,
   MedicinesSlugRoute: MedicinesSlugRoute,
   ClassesIndexRoute: ClassesIndexRoute,
   ManufacturersIndexRoute: ManufacturersIndexRoute,
