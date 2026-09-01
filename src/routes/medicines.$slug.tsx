@@ -185,25 +185,39 @@ function MedicineDetail() {
           </dl>
         </Section>
 
-        <Section value="brands" title={`Brand Names in India (${brands?.length ?? 0})`}>
+        <Section value="brands" title={`Brands & Manufacturers (${brands?.length ?? 0})`}>
           {(brands?.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground">No verified brand record yet.</p>
+            <p className="text-sm text-muted-foreground">No brand record yet.</p>
           ) : (
             <ul className="grid gap-2 sm:grid-cols-2">
               {(brands ?? []).map((b) => (
-                <li key={b.id} className="rounded-lg border p-3 text-sm">
-                  <p className="font-medium">{b.brand_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {b.composition} {b.strength ? `• ${b.strength}` : ""} {b.dosage_form ? `• ${b.dosage_form}` : ""}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {b.manufacturers?.name ?? "Manufacturer not recorded"}
-                    {b.verified ? " • verified composition" : " • unverified"}
-                  </p>
+                <li key={b.id}>
+                  <Link
+                    to="/brands/$id"
+                    params={{ id: b.id }}
+                    className="block rounded-lg border p-3 text-sm transition-colors hover:bg-accent"
+                  >
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium">{b.brand_name}</span>
+                      <VerificationBadge status={b.verification_status} />
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {b.composition ?? "Composition not yet verified"}
+                      {b.strength ? ` • ${b.strength}` : ""}
+                      {b.dosage_form ? ` • ${b.dosage_form}` : ""}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {b.manufacturers?.name ?? "Manufacturer not recorded"}
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
           )}
+          <p className="mt-3 text-xs text-muted-foreground">
+            Brand records are factual reference data. They do not imply any brand or company is
+            better, safer or recommended.
+          </p>
         </Section>
 
         <Section value="moa" title="Mechanism of Action & Pharmacodynamics" term="Mechanism of Action">
