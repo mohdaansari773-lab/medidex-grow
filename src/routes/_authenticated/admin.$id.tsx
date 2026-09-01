@@ -126,6 +126,7 @@ function AdminEditor() {
   const save = useServerFn(saveMedicine);
   const brandSave = useServerFn(saveBrand);
   const brandDelete = useServerFn(deleteBrand);
+  const brandStatus = useServerFn(setBrandStatus);
   const refSave = useServerFn(saveReference);
   const refUnlink = useServerFn(unlinkReference);
   const classSave = useServerFn(setMedicineClasses);
