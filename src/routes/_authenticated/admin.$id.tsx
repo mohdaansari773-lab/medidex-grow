@@ -329,14 +329,35 @@ function AdminEditor() {
           </section>
 
           <section className="surface space-y-3 p-4">
-            <h2 className="font-display font-semibold">Brands</h2>
+            <h2 className="font-display font-semibold">Brands & manufacturers</h2>
             <ul className="space-y-1 text-sm">
               {(brands.data ?? []).map((b) => (
-                <li key={b.id} className="flex items-center gap-2">
+                <li key={b.id} className="flex flex-wrap items-center gap-2">
                   <span className="mr-auto">
-                    {b.brand_name} — {b.composition ?? "Not yet verified"}{" "}
-                    {b.verified ? "" : "(unverified)"}
+                    {b.brand_name} — {b.composition ?? "Not yet verified"}
+                    {b.strength ? ` • ${b.strength}` : ""} •{" "}
+                    {b.verification_status === "verified" ? "Verified" : "Not yet verified"}
                   </span>
+                  {(["verified", "under_review", "archived"] as const).map((s) => (
+                    <Button
+                      key={s}
+                      size="sm"
+                      variant={b.verification_status === s ? "secondary" : "ghost"}
+                      onClick={async () => {
+                        try {
+                          await brandStatus({ data: { id: b.id, verification_status: s } });
+                          await qc.invalidateQueries({ queryKey: ["admin-brands", id] });
+                          toast.success("Brand status updated");
+                        } catch (e) {
+                          toast.error(
+                            e instanceof Error ? e.message : "Could not update this brand.",
+                          );
+                        }
+                      }}
+                    >
+                      {s === "verified" ? "Verify" : s === "archived" ? "Archive" : "Review"}
+                    </Button>
+                  ))}
                   <Button
                     size="sm"
                     variant="ghost"
@@ -373,32 +394,86 @@ function AdminEditor() {
                 value={brandDraft.strength}
                 onChange={(e) => setBrandDraft({ ...brandDraft, strength: e.target.value })}
               />
+              <Input
+                placeholder="Dosage form"
+                aria-label="Dosage form"
+                value={brandDraft.dosage_form}
+                onChange={(e) => setBrandDraft({ ...brandDraft, dosage_form: e.target.value })}
+              />
+              <Input
+                placeholder="Route"
+                aria-label="Route"
+                value={brandDraft.route}
+                onChange={(e) => setBrandDraft({ ...brandDraft, route: e.target.value })}
+              />
+              <Input
+                placeholder="Source / reference"
+                aria-label="Source or reference"
+                value={brandDraft.source}
+                onChange={(e) => setBrandDraft({ ...brandDraft, source: e.target.value })}
+              />
+              <select
+                aria-label="Manufacturer"
+                className="h-9 rounded-md border bg-background px-2 text-sm"
+                value={brandDraft.manufacturer_id}
+                onChange={(e) => setBrandDraft({ ...brandDraft, manufacturer_id: e.target.value })}
+              >
+                <option value="">Manufacturer not recorded</option>
+                {(makers.data ?? []).map((mk) => (
+                  <option key={mk.id} value={mk.id}>
+                    {mk.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label="Verification status"
+                className="h-9 rounded-md border bg-background px-2 text-sm"
+                value={brandDraft.verification_status}
+                onChange={(e) =>
+                  setBrandDraft({ ...brandDraft, verification_status: e.target.value })
+                }
+              >
+                <option value="draft">Draft</option>
+                <option value="under_review">Under review</option>
+                <option value="verified">Verified</option>
+                <option value="needs_update">Needs update</option>
+                <option value="archived">Archived</option>
+              </select>
             </div>
             <Button
               size="sm"
               onClick={async () => {
                 try {
-                  await brandSave({
+                  const res = await brandSave({
                     data: {
                       medicine_id: id,
                       brand_name: brandDraft.brand_name,
+                      manufacturer_id: brandDraft.manufacturer_id || null,
                       composition: brandDraft.composition || null,
                       strength: brandDraft.strength || null,
-                      verified: !!brandDraft.composition,
+                      dosage_form: brandDraft.dosage_form || null,
+                      route: brandDraft.route || null,
+                      source: brandDraft.source || null,
+                      verification_status: brandDraft.verification_status as "under_review",
                     },
                   });
-                  setBrandDraft({ brand_name: "", composition: "", strength: "" });
+                  setBrandDraft(EMPTY_BRAND);
                   await qc.invalidateQueries({ queryKey: ["admin-brands", id] });
-                  toast.success("Brand saved");
-                } catch {
-                  toast.error("Could not save this brand.");
+                  toast.success(
+                    res.verification_status === "verified"
+                      ? "Brand saved as verified"
+                      : "Brand saved as Not yet verified",
+                  );
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Could not save this brand.");
                 }
               }}
             >
               Add brand
             </Button>
             <p className="text-xs text-muted-foreground">
-              A brand is only marked verified when its composition is recorded.
+              A brand can only be stored as verified when manufacturer, composition, dosage form and
+              a source are all recorded. Anything else stays “Not yet verified”.
             </p>
           </section>
 
