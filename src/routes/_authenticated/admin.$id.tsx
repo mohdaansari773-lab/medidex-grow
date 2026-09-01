@@ -14,11 +14,24 @@ import {
   saveMedicine,
   saveBrand,
   deleteBrand,
+  setBrandStatus,
   saveReference,
   unlinkReference,
   setMedicineClasses,
   type MedicineFormValues,
 } from "@/lib/admin.functions";
+import { manufacturersQuery } from "@/lib/queries";
+
+const EMPTY_BRAND = {
+  brand_name: "",
+  composition: "",
+  strength: "",
+  dosage_form: "",
+  route: "",
+  source: "",
+  manufacturer_id: "",
+  verification_status: "under_review",
+};
 
 export const Route = createFileRoute("/_authenticated/admin/$id")({
   head: () => ({
@@ -170,7 +183,8 @@ function AdminEditor() {
   });
 
   const [selected, setSelected] = useState<string[]>([]);
-  const [brandDraft, setBrandDraft] = useState({ brand_name: "", composition: "", strength: "" });
+  const [brandDraft, setBrandDraft] = useState(EMPTY_BRAND);
+  const makers = useQuery(manufacturersQuery());
   const [refDraft, setRefDraft] = useState({ source_name: "", source_url: "" });
 
   useEffect(() => {
