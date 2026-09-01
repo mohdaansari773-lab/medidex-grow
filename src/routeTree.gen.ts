@@ -39,6 +39,7 @@ import { Route as MedicinesSlugRouteImport } from './routes/medicines.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminIdRouteImport } from './routes/_authenticated/admin.$id'
 import { Route as AuthenticatedAdminImportRouteImport } from './routes/_authenticated/admin.import'
+import { Route as AuthenticatedAdminManufacturersRouteImport } from './routes/_authenticated/admin.manufacturers'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -190,6 +191,12 @@ const AuthenticatedAdminImportRoute =
     path: '/admin/import',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminManufacturersRoute =
+  AuthenticatedAdminManufacturersRouteImport.update({
+    id: '/admin/manufacturers',
+    path: '/admin/manufacturers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -220,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/medicines/': typeof MedicinesIndexRoute
   '/admin/$id': typeof AuthenticatedAdminIdRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
+  '/admin/manufacturers': typeof AuthenticatedAdminManufacturersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -251,6 +259,7 @@ export interface FileRoutesByTo {
   '/medicines': typeof MedicinesIndexRoute
   '/admin/$id': typeof AuthenticatedAdminIdRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
+  '/admin/manufacturers': typeof AuthenticatedAdminManufacturersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesById {
@@ -284,6 +293,7 @@ export interface FileRoutesById {
   '/medicines/': typeof MedicinesIndexRoute
   '/_authenticated/admin/$id': typeof AuthenticatedAdminIdRoute
   '/_authenticated/admin/import': typeof AuthenticatedAdminImportRoute
+  '/_authenticated/admin/manufacturers': typeof AuthenticatedAdminManufacturersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/medicines/'
     | '/admin/$id'
     | '/admin/import'
+    | '/admin/manufacturers'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -348,6 +359,7 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/admin/$id'
     | '/admin/import'
+    | '/admin/manufacturers'
     | '/admin'
   id:
     | '__root__'
@@ -380,6 +392,7 @@ export interface FileRouteTypes {
     | '/medicines/'
     | '/_authenticated/admin/$id'
     | '/_authenticated/admin/import'
+    | '/_authenticated/admin/manufacturers'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -625,18 +638,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminImportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/manufacturers': {
+      id: '/_authenticated/admin/manufacturers'
+      path: '/admin/manufacturers'
+      fullPath: '/admin/manufacturers'
+      preLoaderRoute: typeof AuthenticatedAdminManufacturersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminIdRoute: typeof AuthenticatedAdminIdRoute
   AuthenticatedAdminImportRoute: typeof AuthenticatedAdminImportRoute
+  AuthenticatedAdminManufacturersRoute: typeof AuthenticatedAdminManufacturersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminIdRoute: AuthenticatedAdminIdRoute,
   AuthenticatedAdminImportRoute: AuthenticatedAdminImportRoute,
+  AuthenticatedAdminManufacturersRoute: AuthenticatedAdminManufacturersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
