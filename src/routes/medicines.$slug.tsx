@@ -16,6 +16,7 @@ import { ExplainButton } from "@/components/explain-button";
 import { PronounceButtons } from "@/components/pronounce";
 import { Disclaimer } from "@/components/disclaimer";
 import { MedicalTermHelp } from "@/components/medical-term-help";
+import { VerificationBadge } from "@/components/verification-badge";
 import {
   medicineQuery,
   medicineBrandsQuery,

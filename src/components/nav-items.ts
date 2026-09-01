@@ -16,6 +16,7 @@ import {
   Settings,
   Info,
   ShieldCheck,
+  Factory,
   type LucideIcon,
 } from "lucide-react";
 
@@ -25,6 +26,7 @@ export const MAIN_NAV: NavItem[] = [
   { to: "/", label: "Home", icon: Home },
   { to: "/medicines", label: "Medicines", icon: Pill },
   { to: "/classes", label: "Classes", icon: Dna },
+  { to: "/manufacturers", label: "Pharma Companies", icon: Factory },
   { to: "/terms", label: "Medical Terms", icon: BookOpen },
   { to: "/memory", label: "Drug Memory", icon: Brain },
   { to: "/learn", label: "Learning Path", icon: GraduationCap },
