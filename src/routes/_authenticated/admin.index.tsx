@@ -115,6 +115,9 @@ function AdminHome() {
           <h1 className="font-display text-2xl font-bold">Medicine Editor</h1>
           <p className="text-xs text-muted-foreground">{DATASET_LABEL}</p>
         </div>
+        <Button asChild size="sm" variant="outline">
+          <Link to="/admin/manufacturers">Manufacturers</Link>
+        </Button>
         <Button asChild size="sm">
           <Link to="/admin/$id" params={{ id: "new" }}>
             <Plus className="size-4" /> Add medicine

@@ -29,6 +29,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as StudyRouteImport } from './routes/study'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as BrandsIdRouteImport } from './routes/brands.$id'
 import { Route as ClassesIndexRouteImport } from './routes/classes.index'
 import { Route as ClassesSlugRouteImport } from './routes/classes.$slug'
 import { Route as ManufacturersIndexRouteImport } from './routes/manufacturers.index'
@@ -38,6 +39,7 @@ import { Route as MedicinesSlugRouteImport } from './routes/medicines.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminIdRouteImport } from './routes/_authenticated/admin.$id'
 import { Route as AuthenticatedAdminImportRouteImport } from './routes/_authenticated/admin.import'
+import { Route as AuthenticatedAdminManufacturersRouteImport } from './routes/_authenticated/admin.manufacturers'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -138,6 +140,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BrandsIdRoute = BrandsIdRouteImport.update({
+  id: '/brands/$id',
+  path: '/brands/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClassesIndexRoute = ClassesIndexRouteImport.update({
   id: '/classes/',
   path: '/classes/',
@@ -184,6 +191,12 @@ const AuthenticatedAdminImportRoute =
     path: '/admin/import',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminManufacturersRoute =
+  AuthenticatedAdminManufacturersRouteImport.update({
+    id: '/admin/manufacturers',
+    path: '/admin/manufacturers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -205,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/study': typeof StudyRoute
   '/terms': typeof TermsRoute
+  '/brands/$id': typeof BrandsIdRoute
   '/classes/$slug': typeof ClassesSlugRoute
   '/manufacturers/$id': typeof ManufacturersIdRoute
   '/medicines/$slug': typeof MedicinesSlugRoute
@@ -213,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/medicines/': typeof MedicinesIndexRoute
   '/admin/$id': typeof AuthenticatedAdminIdRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
+  '/admin/manufacturers': typeof AuthenticatedAdminManufacturersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -235,6 +250,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/study': typeof StudyRoute
   '/terms': typeof TermsRoute
+  '/brands/$id': typeof BrandsIdRoute
   '/classes/$slug': typeof ClassesSlugRoute
   '/manufacturers/$id': typeof ManufacturersIdRoute
   '/medicines/$slug': typeof MedicinesSlugRoute
@@ -243,6 +259,7 @@ export interface FileRoutesByTo {
   '/medicines': typeof MedicinesIndexRoute
   '/admin/$id': typeof AuthenticatedAdminIdRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
+  '/admin/manufacturers': typeof AuthenticatedAdminManufacturersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesById {
@@ -267,6 +284,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/study': typeof StudyRoute
   '/terms': typeof TermsRoute
+  '/brands/$id': typeof BrandsIdRoute
   '/classes/$slug': typeof ClassesSlugRoute
   '/manufacturers/$id': typeof ManufacturersIdRoute
   '/medicines/$slug': typeof MedicinesSlugRoute
@@ -275,6 +293,7 @@ export interface FileRoutesById {
   '/medicines/': typeof MedicinesIndexRoute
   '/_authenticated/admin/$id': typeof AuthenticatedAdminIdRoute
   '/_authenticated/admin/import': typeof AuthenticatedAdminImportRoute
+  '/_authenticated/admin/manufacturers': typeof AuthenticatedAdminManufacturersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -299,6 +318,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/study'
     | '/terms'
+    | '/brands/$id'
     | '/classes/$slug'
     | '/manufacturers/$id'
     | '/medicines/$slug'
@@ -307,6 +327,7 @@ export interface FileRouteTypes {
     | '/medicines/'
     | '/admin/$id'
     | '/admin/import'
+    | '/admin/manufacturers'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -329,6 +350,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/study'
     | '/terms'
+    | '/brands/$id'
     | '/classes/$slug'
     | '/manufacturers/$id'
     | '/medicines/$slug'
@@ -337,6 +359,7 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/admin/$id'
     | '/admin/import'
+    | '/admin/manufacturers'
     | '/admin'
   id:
     | '__root__'
@@ -360,6 +383,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/study'
     | '/terms'
+    | '/brands/$id'
     | '/classes/$slug'
     | '/manufacturers/$id'
     | '/medicines/$slug'
@@ -368,6 +392,7 @@ export interface FileRouteTypes {
     | '/medicines/'
     | '/_authenticated/admin/$id'
     | '/_authenticated/admin/import'
+    | '/_authenticated/admin/manufacturers'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -392,6 +417,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   StudyRoute: typeof StudyRoute
   TermsRoute: typeof TermsRoute
+  BrandsIdRoute: typeof BrandsIdRoute
   ClassesSlugRoute: typeof ClassesSlugRoute
   ManufacturersIdRoute: typeof ManufacturersIdRoute
   MedicinesSlugRoute: typeof MedicinesSlugRoute
@@ -542,6 +568,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/brands/$id': {
+      id: '/brands/$id'
+      path: '/brands/$id'
+      fullPath: '/brands/$id'
+      preLoaderRoute: typeof BrandsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/classes/': {
       id: '/classes/'
       path: '/classes'
@@ -605,18 +638,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminImportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/manufacturers': {
+      id: '/_authenticated/admin/manufacturers'
+      path: '/admin/manufacturers'
+      fullPath: '/admin/manufacturers'
+      preLoaderRoute: typeof AuthenticatedAdminManufacturersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminIdRoute: typeof AuthenticatedAdminIdRoute
   AuthenticatedAdminImportRoute: typeof AuthenticatedAdminImportRoute
+  AuthenticatedAdminManufacturersRoute: typeof AuthenticatedAdminManufacturersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminIdRoute: AuthenticatedAdminIdRoute,
   AuthenticatedAdminImportRoute: AuthenticatedAdminImportRoute,
+  AuthenticatedAdminManufacturersRoute: AuthenticatedAdminManufacturersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
@@ -644,6 +686,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   StudyRoute: StudyRoute,
   TermsRoute: TermsRoute,
+  BrandsIdRoute: BrandsIdRoute,
   ClassesSlugRoute: ClassesSlugRoute,
   ManufacturersIdRoute: ManufacturersIdRoute,
   MedicinesSlugRoute: MedicinesSlugRoute,
