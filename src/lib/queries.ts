@@ -246,7 +246,7 @@ export const searchQuery = (term: string) =>
       if (t.length < 2) return [];
       const needle = t.toLowerCase();
       const like = `%${t}%`;
-      const [meds, synMeds, brands, classes, terms, makers] = await Promise.all([
+      const [meds, synMeds, brands, brandsByMaker, classes, terms, makers] = await Promise.all([
         supabase
           .from("medicines")
           .select(
@@ -272,6 +272,15 @@ export const searchQuery = (term: string) =>
             `brand_name.ilike.${like},composition.ilike.${like},active_ingredient.ilike.${like}`,
           )
           .limit(10),
+        // Company → brands (e.g. searching "Cipla" lists that company's brands)
+        supabase
+          .from("brands")
+          .select(
+            "id, brand_name, composition, active_ingredient, strength, verification_status, medicines(slug, display_name), manufacturers!inner(name)",
+          )
+          .ilike("manufacturers.name", like)
+          .order("verification_status")
+          .limit(12),
         supabase.from("drug_classes").select("slug, name, class_type").ilike("name", like).limit(8),
         supabase
           .from("medical_terms")
@@ -284,6 +293,7 @@ export const searchQuery = (term: string) =>
           .ilike("name", like)
           .limit(5),
       ]);
+
 
       const results: SearchResult[] = [];
       const seen = new Set<string>();
