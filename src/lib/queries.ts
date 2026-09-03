@@ -489,13 +489,33 @@ export const manufacturerBrandsQuery = (id: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("brands")
-        .select("*, medicines(slug, display_name, generic_name, category)")
+        .select(
+          "*, medicines(id, slug, display_name, generic_name, category), references(source_name, source_url)",
+        )
         .eq("manufacturer_id", id)
         .order("brand_name");
       if (error) throw error;
       return data ?? [];
     },
   });
+
+/** Drug classes represented by the medicines a company's brands map to. */
+export const manufacturerClassesQuery = (medicineIds: string[]) =>
+  queryOptions({
+    queryKey: ["manufacturer-classes", [...medicineIds].sort().join(",")],
+    enabled: medicineIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("medicine_classifications")
+        .select("drug_classes(id, slug, name, class_type)")
+        .in("medicine_id", medicineIds);
+      if (error) throw error;
+      const map = new Map<string, { id: string; slug: string; name: string; class_type: string }>();
+      for (const row of data ?? []) if (row.drug_classes) map.set(row.drug_classes.id, row.drug_classes);
+      return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    },
+  });
+
 
 export const brandQuery = (id: string) =>
   queryOptions({
