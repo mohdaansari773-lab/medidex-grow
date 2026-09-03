@@ -2,7 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { VerificationBadge } from "@/components/verification-badge";
-import { manufacturerBrandsQuery, manufacturerQuery } from "@/lib/queries";
+import {
+  manufacturerBrandsQuery,
+  manufacturerClassesQuery,
+  manufacturerQuery,
+} from "@/lib/queries";
+
 
 export const Route = createFileRoute("/manufacturers/$id")({
   head: () => ({
