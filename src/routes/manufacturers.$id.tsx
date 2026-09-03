@@ -36,15 +36,33 @@ function ManufacturerProfile() {
   const { data: m, isLoading } = useQuery(manufacturerQuery(id));
   const { data: brands } = useQuery(manufacturerBrandsQuery(id));
 
+  const list = brands ?? [];
+  const medicineIds = Array.from(
+    new Set(list.flatMap((b) => (b.medicines?.id ? [b.medicines.id] : []))),
+  );
+  const { data: classes } = useQuery(manufacturerClassesQuery(medicineIds));
+
   if (isLoading) return <p className="p-6 text-sm text-muted-foreground">Loading company...</p>;
   if (!m) return <p className="p-6 text-sm">Company not found.</p>;
 
-  const list = brands ?? [];
   const verified = list.filter((b) => b.verification_status === "verified");
   const pending = list.filter((b) => b.verification_status !== "verified");
   const forms = Array.from(
     new Set(verified.map((b) => b.dosage_form).filter((f): f is string => !!f)),
   );
+  const medicines = Array.from(
+    new Map(
+      verified.flatMap((b) => (b.medicines ? [[b.medicines.slug, b.medicines] as const] : [])),
+    ).values(),
+  ).sort((a, b) => a.display_name.localeCompare(b.display_name));
+  const sources = Array.from(
+    new Set(
+      list.flatMap((b) =>
+        b.references?.source_name ? [b.references.source_name] : b.source ? [b.source] : [],
+      ),
+    ),
+  );
+
 
   return (
     <div className="space-y-5">
