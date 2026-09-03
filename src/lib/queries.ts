@@ -317,18 +317,37 @@ export const searchQuery = (term: string) =>
         });
       }
 
-      for (const b of brands.data ?? [])
+      const brandRows = [...(brands.data ?? []), ...(brandsByMaker.data ?? [])];
+      const seenBrands = new Set<string>();
+      for (const b of brandRows) {
+        if (seenBrands.has(b.id)) continue;
+        seenBrands.add(b.id);
+        const maker = b.manufacturers?.name;
+        const generic = b.medicines?.display_name;
+        const composition =
+          b.verification_status === "verified"
+            ? (b.composition ?? b.active_ingredient ?? "composition on record")
+            : "Not yet verified";
         results.push({
           kind: "brand",
           title: b.brand_name,
-          subtitle: `Brand${b.manufacturers?.name ? ` • ${b.manufacturers.name}` : ""} • ${
-            b.verification_status === "verified"
-              ? (b.composition ?? b.active_ingredient ?? "composition on record")
-              : "Not yet verified"
-          }${b.strength ? ` ${b.strength}` : ""}`,
+          subtitle: [
+            "Brand",
+            maker,
+            generic,
+            composition,
+            b.strength ?? undefined,
+          ]
+            .filter(Boolean)
+            .join(" • "),
           href: `/brands/${b.id}`,
-          rank: rankFor(b.brand_name, needle, 2),
+          rank: Math.min(
+            rankFor(b.brand_name, needle, 2),
+            maker ? rankFor(maker, needle, 2) + 1 : 8,
+          ),
         });
+      }
+
 
       for (const c of classes.data ?? [])
         results.push({
