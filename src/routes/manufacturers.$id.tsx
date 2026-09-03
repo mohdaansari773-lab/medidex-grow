@@ -146,14 +146,58 @@ function ManufacturerProfile() {
         </section>
       )}
 
+      {medicines.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="font-display font-semibold">
+            Associated generic medicines ({medicines.length})
+          </h2>
+          <ul className="flex flex-wrap gap-1.5">
+            {medicines.map((med) => (
+              <li key={med.slug}>
+                <Link
+                  to="/medicines/$slug"
+                  params={{ slug: med.slug }}
+                  className="inline-block rounded-md border px-2.5 py-1 text-xs hover:border-primary"
+                >
+                  {med.display_name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {(classes ?? []).length > 0 && (
+        <section className="space-y-2">
+          <h2 className="font-display font-semibold">Drug classes represented</h2>
+          <ul className="flex flex-wrap gap-1.5">
+            {(classes ?? []).map((c) => (
+              <li key={c.id}>
+                <Link
+                  to="/classes/$slug"
+                  params={{ slug: c.slug }}
+                  className="inline-block rounded-md border px-2.5 py-1 text-xs hover:border-primary"
+                >
+                  {c.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="surface space-y-1 p-4 text-xs text-muted-foreground">
-        <h2 className="font-display text-sm font-semibold text-foreground">Source</h2>
+        <h2 className="font-display text-sm font-semibold text-foreground">References</h2>
         <p>{m.source ?? "No source recorded for this company yet."}</p>
+        {sources.map((s) => (
+          <p key={s}>{s}</p>
+        ))}
         <p>
           Company and brand records are factual reference data only. They do not imply that any
           company or brand is better, safer or recommended.
         </p>
       </section>
+
     </div>
   );
 }
