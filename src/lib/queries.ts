@@ -317,18 +317,37 @@ export const searchQuery = (term: string) =>
         });
       }
 
-      for (const b of brands.data ?? [])
+      const brandRows = [...(brands.data ?? []), ...(brandsByMaker.data ?? [])];
+      const seenBrands = new Set<string>();
+      for (const b of brandRows) {
+        if (seenBrands.has(b.id)) continue;
+        seenBrands.add(b.id);
+        const maker = b.manufacturers?.name;
+        const generic = b.medicines?.display_name;
+        const composition =
+          b.verification_status === "verified"
+            ? (b.composition ?? b.active_ingredient ?? "composition on record")
+            : "Not yet verified";
         results.push({
           kind: "brand",
           title: b.brand_name,
-          subtitle: `Brand${b.manufacturers?.name ? ` • ${b.manufacturers.name}` : ""} • ${
-            b.verification_status === "verified"
-              ? (b.composition ?? b.active_ingredient ?? "composition on record")
-              : "Not yet verified"
-          }${b.strength ? ` ${b.strength}` : ""}`,
+          subtitle: [
+            "Brand",
+            maker,
+            generic,
+            composition,
+            b.strength ?? undefined,
+          ]
+            .filter(Boolean)
+            .join(" • "),
           href: `/brands/${b.id}`,
-          rank: rankFor(b.brand_name, needle, 2),
+          rank: Math.min(
+            rankFor(b.brand_name, needle, 2),
+            maker ? rankFor(maker, needle, 2) + 1 : 8,
+          ),
         });
+      }
+
 
       for (const c of classes.data ?? [])
         results.push({
@@ -470,13 +489,33 @@ export const manufacturerBrandsQuery = (id: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("brands")
-        .select("*, medicines(slug, display_name, generic_name, category)")
+        .select(
+          "*, medicines(id, slug, display_name, generic_name, category), references(source_name, source_url)",
+        )
         .eq("manufacturer_id", id)
         .order("brand_name");
       if (error) throw error;
       return data ?? [];
     },
   });
+
+/** Drug classes represented by the medicines a company's brands map to. */
+export const manufacturerClassesQuery = (medicineIds: string[]) =>
+  queryOptions({
+    queryKey: ["manufacturer-classes", [...medicineIds].sort().join(",")],
+    enabled: medicineIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("medicine_classifications")
+        .select("drug_classes(id, slug, name, class_type)")
+        .in("medicine_id", medicineIds);
+      if (error) throw error;
+      const map = new Map<string, { id: string; slug: string; name: string; class_type: string }>();
+      for (const row of data ?? []) if (row.drug_classes) map.set(row.drug_classes.id, row.drug_classes);
+      return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    },
+  });
+
 
 export const brandQuery = (id: string) =>
   queryOptions({
